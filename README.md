@@ -1,4 +1,4 @@
-DiMint_Watcher
+DiMint_ClientEx
 ==============
 
-Watcher for dimint server status via web
+Client example and Overlord, Node status watcher via web
