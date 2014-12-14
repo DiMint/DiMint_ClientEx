@@ -1,0 +1,9 @@
+.charts-container {
+  overflow: hidden;
+}
+.chart {
+  margin: 10px 20px;
+  width: 400px;
+  height: 250px;
+  float: left;
+}

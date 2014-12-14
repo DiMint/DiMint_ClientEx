@@ -1,4 +1,4 @@
-from flask import Flask, abort, render_template, request
+from flask import Flask, abort, jsonify, render_template, request
 from dimint_client import DiMintClient
 
 app = Flask(__name__)
@@ -15,9 +15,12 @@ def index():
 
 @app.route('/monitor')
 def monitor():
-    if request.is_xhr:
-        pass
-    return abort(503)
+    if not request.is_xhr:
+        return render_template('monitor.html')
+    nodes_state = client.state()
+    if isinstance(nodes_state, dict) and 'state' in nodes_state:
+        nodes_state = nodes_state['state']
+    return jsonify(ok=True, state=nodes_state)
 
 
 @app.route('/getset')
