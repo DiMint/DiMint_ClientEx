@@ -4,8 +4,8 @@
 {% endblock %}
 {% block content %}
   <h1>Monitor</h1>
-  <div class="charts-container">
-  </div>
+  <div id="summaryChart"></div>
+  <div class="charts-container"></div>
 {% endblock %}
 {% block js %}
   <script type="text/javascript" src="{{ url_for('static', filename='lib/js/jquery.canvasjs.min.js') }}"></script>

@@ -1,6 +1,10 @@
 .charts-container {
   overflow: hidden;
 }
+
+#summaryChart {
+  height: 400px;
+}
 .chart {
   margin: 10px 20px;
   width: 400px;

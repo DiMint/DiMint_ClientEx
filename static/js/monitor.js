@@ -5,6 +5,14 @@ Array.prototype.remove = function(x) {
       this.splice(i, 1);
     }
   }
+};
+
+var md5ToColor = function(md5Str) {
+  return "#" + md5Str.slice(0, 6);
+};
+
+var shortNodeId = function(nodeId) {
+  return nodeId.substr(0, 5) + "...";
 }
 
 $(function() {
@@ -12,6 +20,20 @@ $(function() {
   var nodesInfo = {};
   var xVal = 0;
   var chartWidth = 30;
+  var summaryData = [];
+  var summaryDataIndex = [];
+  var summaryChartDiv = $("#summaryChart").CanvasJSChart({
+    title: {
+      text: "Summary - node key count compare"
+    },
+    toolTip: {
+      shared: true
+    },
+    data: [],
+    axisX: {
+      labelAngle: 45
+    }
+  });
 
   var updateMonitorInfoFunc = function(){
     $.ajax({
@@ -33,19 +55,21 @@ $(function() {
             x: xVal,
             y: nodeInfo.memory_percent * 100
           });
-          nodesInfo[nodeId].cpuData.push({
+          nodesInfo[nodeId].keyData.push({
             x: xVal,
-            y: nodeInfo.cpu_percent * 100
+            y: nodeInfo.key_count
           });
 
           if (nodesInfo[nodeId].memoryData.length > chartWidth) {
             nodesInfo[nodeId].memoryData.shift();
           }
-          if (nodesInfo[nodeId].cpuData.length > chartWidth) {
-            nodesInfo[nodeId].cpuData.shift();
+          if (nodesInfo[nodeId].keyData.length > chartWidth) {
+            nodesInfo[nodeId].keyData.shift();
           }
           chart = nodesInfo[nodeId].chartDiv.CanvasJSChart();
           chart.render();
+
+          summaryData[summaryDataIndex.indexOf(shortNodeId(nodeId))].y = nodeInfo.key_count;
           deleteNodes.remove(nodeId);
         } else {
           newData = {};
@@ -53,9 +77,9 @@ $(function() {
             x: xVal,
             y: nodeInfo.memory_percent * 100
           }];
-          newData.cpuData = [{
+          newData.keyData = [{
             x: xVal,
-            y: nodeInfo.cpu_percent * 100
+            y: nodeInfo.key_count
           }];
           nodesInfo[nodeId] = newData;
           nodesInfo[nodeId].chartDiv = $("<div>").attr('id', nodeId).addClass("chart").appendTo($(".charts-container")).CanvasJSChart({
@@ -65,23 +89,46 @@ $(function() {
             toolTip: {
               shared: true
             },
+            axisY: {
+              minimum: 0
+            },
+            axisY2: {
+              minimum: 0
+            },
             data: [{
               dataPoints: newData.memoryData,
               type: "line",
-              name: "Memory usage percent"
+              name: "Memory usage percent",
+              axisYType: "primary"
             }, {
-              dataPoints: newData.cpuData,
+              dataPoints: newData.keyData,
               type: "line",
-              name: "CPU usage percent"
+              name: "count of key",
+              axisYType: "secondary"
             }]
           });
+
+          summaryData.push({
+            label: shortNodeId(nodeId),
+            y: nodeInfo.key_count,
+            color: md5ToColor(nodeInfo.role === "master" ? nodeId : nodeInfo.master_node_id)
+          });
+          summaryDataIndex.push(shortNodeId(nodeId));
         }
       }
       xVal++;
+
       for (deletedNode of deleteNodes) {
+        var i = summaryDataIndex.indexOf(shortNodeId(deletedNodes));
+        summaryData.splice(i, 1);
+        summaryDataIndex.remove(shortNodeId(deletedNode));
         deleteNodes[deletedNode].chartDiv.remove();
         delete deleteNodes[deletedNode];
       }
+
+      chart = summaryChartDiv.CanvasJSChart();
+      chart.options.data = [{dataPoints: summaryData}];
+      chart.render();
     });
   };
   setInterval(updateMonitorInfoFunc, updateInterval);
