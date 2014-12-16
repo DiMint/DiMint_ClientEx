@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, jsonify, render_template, request
 from dimint_client import DiMintClient
 
@@ -44,10 +46,16 @@ def get(key):
 @app.route('/set', methods=['POST'])
 def set():
     method = request.form.get('set_method')
-    key = request.form.get('set_key')
+    try:
+        key = json.loads(request.form.get('set_key'))
+    except ValueError:
+        key = request.form.get('set_key')
     value = request.form.get('set_value')
-    if method == 'set':
-        result_value = client.set(key, value)
+    if method == 'set' and value:
+        try:
+            result_value = client.set(key, json.loads(value))
+        except ValueError:
+            result_value = client.set(key, value)
     else:
         result_value = None
 
