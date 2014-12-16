@@ -1,4 +1,4 @@
-from flask import Flask, abort, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request
 from dimint_client import DiMintClient
 
 app = Flask(__name__)
@@ -24,18 +24,34 @@ def monitor():
 
 
 @app.route('/getset')
-def getset():
-    return abort(503)
+def getset(set_method=None, set_key=None, set_value=None, result_value=None):
+    search_key = request.args.get('search_key')
+    search_value = client.get(search_key) if search_key is not None else None
+    return render_template('getset.html', search_key=search_key,
+                           search_value=search_value, set_method=set_method,
+                           set_key=set_key, set_value=set_value,
+                           set_result=result_value)
 
 
 @app.route('/get/<path:key>')
 def get(key):
-    return abort(503)
+    value = client[key]
+    if request.is_xhr:
+        return jsonify(ok=True, value=value['value'])
+    return render_template('getset.html', search_key=key, search_value=value)
 
 
 @app.route('/set', methods=['POST'])
 def set():
-    return abort(503)
+    method = request.form.get('set_method')
+    key = request.form.get('set_key')
+    value = request.form.get('set_value')
+    if method == 'set':
+        result_value = client.set(key, value)
+    else:
+        result_value = None
+
+    return getset(method, key, value, result_value)
 
 
 if __name__ == '__main__':
