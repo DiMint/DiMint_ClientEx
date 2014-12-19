@@ -9,5 +9,5 @@ $ source myenv/bin/activate
 $ pip install -r requirements.txt
 $ cp config.cfg.example config.cfg
 $ python app.py
-$ deactivate
 ```
+And you can see webpage in http://localhost:5000/
